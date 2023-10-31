@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dazzling</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+        width: 100vw;
+        height: 100vh;
+        max-width: 100%;
+        display: grid;
+        place-content: center;
+        background-color: #2d2828;
+        background-image: url("./gradient-bg.jpg");
+        /* mix-blend-mode: overlay; */
+        overflow: hidden;
+        position: relative;
+        cursor: none;
+      }
+
+      #cursor {
+        width: 40px;
+        height: 40px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        mix-blend-mode: overlay;
+        border: 1px solid #333;
+        border-radius: 50%;
+        /* z-index: 999; */
+      }
+
+      #cursor::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        background: #333;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      .heading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        font-size: 100px;
+        color: rgba(233, 233, 233, 1);
+        transform: translate(-50%, -50%);
+        font-weight: bold;
+        white-space: nowrap;
+      }
+
+      @media screen and (max-width: 576px) {
+        .heading {
+          font-size: 50px;
+        }
+      }
+
+      .container {
+        position: absolute;
+        width: 244px;
+        height: 244px;
+        background-image: url("./bubble-wo-bg.png");
+        background-color: transparent;
+        mix-blend-mode: overlay;
+        overflow: hidden;
+        /* border: 1px solid red; */
+        border-radius: 50%;
+        filter: url("#turbulence");
+        opacity: 0.6;
+        /* cursor: pointer; */
+      }
+
+      .animation {
+        animation: bg steps(7) 0.2s forwards;
+      }
+
+      @keyframes bg {
+        to {
+          background-position: -1708px 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="cursor"></div>
+    <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+      <defs>
+        <filter id="turbulence" filterUnits="objectBoundingBox" x="0" y="0">
+          <feTurbulence
+            data-filterId="3"
+            baseFrequency="0.02 0.04"
+            result="turbulence"
+            id="feturbulence"
+            type="fractalNoise"
+            numOctaves="1"
+            seed="1"
+          ></feTurbulence>
+          <feDisplacementMap
+            id="displacement"
+            xChannelSelector="R"
+            yChannelSelector="G"
+            in="SourceGraphic"
+            in2="turbulence"
+            scale="6"
+          />
+        </filter>
+      </defs>
+    </svg>
+
+    <p class="heading">Dazzling</p>
+    <p
+      style="
+        position: absolute;
+        bottom: 5%;
+        left: 50%;
+        font-size: 12px;
+        color: rgb(86, 85, 85);
+        transform: translate(-50%, -50%);
+        white-space: nowrap;
+        opacity: 0.8;
+      "
+    >
+      Created By
+      <a
+        style="color: inherit"
+        href="https://jerrychiu0863.github.io/portfolio-2023/"
+        target="_blank"
+        >Kuan-Jen Chiu</a
+      >
+    </p>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.3/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script>
+      $(function () {
+        const filterTl = gsap.timeline();
+        filterTl.to("#feturbulence", {
+          attr: { baseFrequency: "0.04 0.01" },
+          duration: 2,
+          repeat: -1,
+          yoyo: true,
+          ease: Linear.easeNone,
+        });
+
+        filterTl.to("#displacement", {
+          attr: { scale: 12 },
+          duration: 15,
+          repeat: -1,
+          yoyo: true,
+          ease: Linear.easeNone,
+        });
+        initBubble();
+
+        $("body").on("click", ".container", function () {
+          $(this).addClass("animation");
+          $(this).on("animationend", function () {
+            $(this).remove();
+            const length = $(".container").length;
+            // Limit the amounts of bubbles
+            if (length > 20) return;
+            addBubble();
+          });
+        });
+
+        $("body").on("mousemove", function (e) {
+          const tl = gsap.timeline();
+          tl.to($("#cursor"), {
+            x: e.clientX - 20,
+            y: e.clientY - 20,
+          });
+          // $("#cursor").css({ background: "red" });
+        });
+
+        function initBubble() {
+          for (let i = 0; i < 20; i++) {
+            const el = `<div class="container"></div>`;
+            $("body").append(el);
+          }
+          $(".container").each(function (i) {
+            setAni($(this));
+          });
+        }
+
+        function addBubble() {
+          const el = `<div class="container" style="opacity: 0"></div>`;
+          $("body").append(el);
+          $(".container:last").animate({ opacity: 1 }, 300);
+          setAni($(".container:last"));
+        }
+
+        function setAni(el) {
+          const tl = gsap.timeline();
+          tl.set(el, {
+            top: `${gsap.utils.random(35, 40)}%`,
+            left: `${gsap.utils.random(25, 65)}%`,
+            scale: `${gsap.utils.random(0.1, 0.8)}`,
+            rotation: `${gsap.utils.random(0, 360)}`,
+          });
+          tl.to(el, {
+            //chooses a random number between -20 and 20 for each target, rounding to the closest 5!
+            x: "random(-600, 600, 5)",
+            y: "random(-600, 600, 3)",
+            duration: "random(40,80)",
+            rotation: "random(0,360)",
+            ease: "none",
+            repeat: -1,
+            // gets a new random x and y value on each repeat
+            repeatRefresh: true,
+            stagger: {
+              from: "random",
+            },
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
